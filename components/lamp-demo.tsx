@@ -1,6 +1,6 @@
 "use client";
 import React from "react";
-import { motion } from "@motionone/react";
+import { motion } from "framer-motion";
 
 type Props = { children: React.ReactNode };
 function LampContainer({ children }: Props) {
