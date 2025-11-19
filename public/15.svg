@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="800" viewBox="0 0 1600 800" preserveAspectRatio="xMidYMid slice">
+  <defs>
+    <linearGradient id="g" x1="0" x2="1">
+      <stop offset="0" stop-color="#071027" />
+      <stop offset="1" stop-color="#021521" />
+    </linearGradient>
+  </defs>
+  <rect width="100%" height="100%" fill="url(#g)" />
+  <g fill="#ffffff" opacity="0.06">
+    <rect x="900" y="120" width="540" height="280" rx="20" />
+    <rect x="1060" y="220" width="220" height="120" rx="12" />
+  </g>
+  <g transform="translate(960,360)">
+    <rect x="-420" y="-90" width="780" height="180" rx="90" fill="#ffffff" opacity="0.06" />
+  </g>
+  <g transform="translate(1100,380)">
+    <circle cx="80" cy="40" r="44" fill="#ffffff" opacity="0.06" />
+  </g>
+  <text x="120" y="220" fill="#ffffff" font-family="Inter, Arial, Helvetica, sans-serif" font-weight="700" font-size="72">Hero image placeholder</text>
+  <text x="120" y="280" fill="#ffffff" font-family="Inter, Arial, Helvetica, sans-serif" font-size="24" opacity="0.85">Replace with your actual 15.png in the project's public/ folder</text>
+</svg>
