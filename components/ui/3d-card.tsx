@@ -95,8 +95,38 @@ export const CardBody = ({
   );
 };
 
+type NonVoidIntrinsic = Exclude<keyof React.JSX.IntrinsicElements,
+  | 'area'
+  | 'base'
+  | 'br'
+  | 'col'
+  | 'embed'
+  | 'hr'
+  | 'img'
+  | 'input'
+  | 'link'
+  | 'meta'
+  | 'param'
+  | 'source'
+  | 'track'
+  | 'wbr'
+>;
+
+interface CardItemProps {
+  as?: NonVoidIntrinsic | React.ComponentType<any>;
+  children?: React.ReactNode;
+  className?: string;
+  translateX?: number | string;
+  translateY?: number | string;
+  translateZ?: number | string;
+  rotateX?: number | string;
+  rotateY?: number | string;
+  rotateZ?: number | string;
+  [key: string]: any;
+}
+
 export const CardItem = ({
-  as: Tag = "div",
+  as,
   children,
   className,
   translateX = 0,
@@ -106,19 +136,9 @@ export const CardItem = ({
   rotateY = 0,
   rotateZ = 0,
   ...rest
-}: {
-  as?: React.ElementType;
-  children: React.ReactNode;
-  className?: string;
-  translateX?: number | string;
-  translateY?: number | string;
-  translateZ?: number | string;
-  rotateX?: number | string;
-  rotateY?: number | string;
-  rotateZ?: number | string;
-  [key: string]: any;
-}) => {
-  const ref = useRef<HTMLDivElement>(null);
+}: CardItemProps) => {
+  const Tag: any = as || 'div';
+  const ref = useRef<HTMLElement>(null);
   const [isMouseEntered] = useMouseEnter();
 
   useEffect(() => {
@@ -134,13 +154,20 @@ export const CardItem = ({
     }
   };
 
+  const voidTags = new Set<string>([
+    'area','base','br','col','embed','hr','img','input','link','meta','param','source','track','wbr'
+  ]);
+
+  const tagName = typeof Tag === 'string' ? Tag : '';
+  const renderChildren = !voidTags.has(tagName) ? children : null;
+
   return (
     <Tag
       ref={ref}
-      className={cn("w-fit transition duration-200 ease-linear", className)}
+      className={cn('w-fit transition duration-200 ease-linear', className)}
       {...rest}
     >
-      {children}
+      {renderChildren}
     </Tag>
   );
 };
