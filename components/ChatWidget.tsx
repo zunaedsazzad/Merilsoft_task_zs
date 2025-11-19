@@ -32,6 +32,8 @@ export default function ChatWidget() {
   const [full, setFull] = useState(false)
   const [input, setInput] = useState("")
   const [loading, setLoading] = useState(false)
+  // mobile breakpoint flag
+  const [isMobile, setIsMobile] = useState(false)
 
   // chats: each chat has id and messages
   const initialChats: Record<string, Msg[]> = {
@@ -74,6 +76,16 @@ export default function ChatWidget() {
     // scroll when active chat changes
     bottomRef.current?.scrollIntoView({ behavior: "smooth" })
   }, [activeChat, open, full])
+
+  // track mobile viewport (Messenger style fullscreen below 640px)
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+    const mq = window.matchMedia('(max-width: 640px)')
+    const handler = () => setIsMobile(mq.matches)
+    handler()
+    mq.addEventListener('change', handler)
+    return () => mq.removeEventListener('change', handler)
+  }, [])
 
   async function send() {
     if (!input.trim()) return
@@ -177,15 +189,17 @@ export default function ChatWidget() {
       {/* Chat Panel */}
       {open && (
         <div
-          className={`fixed z-50 flex flex-col border-b bg-gradient-to-r from-fuchsia-800 to-sky-800 border rounded-xl shadow-xl overflow-hidden ${
-            full ? "inset-x-0 top-16 bottom-0 rounded-none" : "right-8 bottom-20 w-80 h-[450px]"
-          }`}
-          style={{
-            transition: "all 180ms ease-in-out",
-          }}
+          className={
+            isMobile
+              ? 'fixed inset-0 z-50 flex flex-col bg-slate-900 text-white animate-in fade-in duration-200'
+              : `fixed z-50 flex flex-col border-b bg-gradient-to-r from-fuchsia-800 to-sky-800 border rounded-xl shadow-xl overflow-hidden ${
+                  full ? 'inset-x-0 top-16 bottom-0 rounded-none' : 'right-8 bottom-20 w-80 h-[450px]'
+                }`
+          }
+          style={{ transition: 'all 180ms ease-in-out', paddingTop: isMobile ? 'env(safe-area-inset-top)' : undefined }}
         >
           {/* Full-screen messenger layout */}
-          {full ? (
+          {(full && !isMobile) ? (
             <div className="flex h-full">
               {/* Left inbox */}
               <div className="w-96 border-r border-slate-700/50 bg-slate-900 text-white flex flex-col">
@@ -286,6 +300,94 @@ export default function ChatWidget() {
                 </div>
               </div>
             </div>
+          ) : isMobile ? (
+            // Mobile full-screen simplified messenger layout (Messenger-like)
+            <>
+              {/* Header */}
+              <div className="px-4 py-3 flex items-center justify-between border-b border-slate-700/50 bg-slate-900 sticky top-0 z-20">
+                <div className="flex items-center gap-3">
+                  <button
+                    onClick={() => setOpen(false)}
+                    aria-label="Close chat"
+                    className="p-2 rounded-lg bg-slate-800 hover:bg-slate-700 active:scale-95 transition-colors"
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  </button>
+                  <div>
+                    <div className="font-semibold text-white text-base">{activeChat === 'ai' ? 'Assistant' : chatTitle(activeChat)}</div>
+                    <div className="text-[11px] text-slate-400">{activeChat === 'ai' ? 'Online' : 'Team Inbox'}</div>
+                  </div>
+                </div>
+                <button
+                  onClick={() => setFull((f) => !f)}
+                  aria-label="Expand"
+                  className="p-2 rounded-lg bg-slate-800 hover:bg-slate-700 active:scale-95 transition-colors"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4" />
+                  </svg>
+                </button>
+              </div>
+
+              {/* Chat switcher tabs */}
+              <div className="flex gap-3 px-4 py-2 overflow-x-auto hide-scrollbar bg-slate-900/95 border-b border-slate-800">
+                {['ai','hiring','marketing','appointment','support'].map(id => (
+                  <button
+                    key={id}
+                    onClick={() => setActiveChat(id)}
+                    className={`flex flex-col items-center min-w-[56px] px-2 py-1 rounded-xl border transition-all duration-200 ${activeChat===id ? 'border-orange-500 bg-slate-800' : 'border-slate-700 bg-slate-900'} active:scale-95`}
+                  >
+                    <div className={`w-9 h-9 rounded-full bg-gradient-to-br ${getChatAvatar(id).bg} flex items-center justify-center text-white text-sm shadow-md mb-1`}>{getChatAvatar(id).icon}</div>
+                    <span className="text-[10px] text-slate-300 truncate w-full text-center">{chatTitle(id).replace(/(Team|Assistant|Book )/,'')}</span>
+                  </button>
+                ))}
+              </div>
+
+              {/* Messages */}
+              <div className="flex-1 overflow-auto px-2 py-3 space-y-5 bg-gradient-to-b from-slate-900 to-slate-950 relative">
+                <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_120%,rgba(251,146,60,0.06),transparent_55%)] pointer-events-none"></div>
+                {(chats[activeChat] || []).map((m, idx) => (
+                  <div
+                    key={m.id}
+                    className={`flex ${m.sender==='user'?'flex-row-reverse':'flex-row'} items-end gap-3 animate-in slide-in-from-bottom-3 fade-in duration-300`}
+                    style={{animationDelay:`${idx*40}ms`}}
+                  >
+                    <div className="flex-shrink-0">
+                      {m.sender==='user' ? (
+                        <div className="w-8 h-8 rounded-full bg-gradient-to-br from-slate-500 to-orange-700 flex items-center justify-center text-white text-xs font-semibold shadow-md">U</div>
+                      ) : (
+                        <div className={`w-8 h-8 rounded-full bg-gradient-to-br ${getChatAvatar(activeChat).bg} flex items-center justify-center text-white text-lg shadow-md`}>{getChatAvatar(activeChat).icon}</div>
+                      )}
+                    </div>
+                    <div className={`px-4 py-2 rounded-2xl max-w-[78%] text-[13px] leading-relaxed break-words shadow-sm ${m.sender==='user' ? 'bg-gradient-to-br from-sky-800 to-orange-600 text-white' : 'bg-gradient-to-br from-slate-800 to-slate-700 text-slate-100 border border-slate-600/40'}`}>{m.text}</div>
+                  </div>
+                ))}
+                {loading && (
+                  <div className="flex flex-row gap-3 items-end animate-in slide-in-from-bottom-3 fade-in duration-300">
+                    <div className={`w-8 h-8 rounded-full bg-gradient-to-br ${getChatAvatar(activeChat).bg} flex items-center justify-center text-white text-lg shadow-md`}>{getChatAvatar(activeChat).icon}</div>
+                    <div className="px-4 py-2 rounded-2xl bg-gradient-to-br from-slate-700 to-slate-800 text-white shadow-md border border-slate-600/40">
+                      <div className="flex gap-1">
+                        <div className="w-2 h-2 rounded-full bg-orange-400 animate-bounce" style={{animationDelay:'0ms'}}></div>
+                        <div className="w-2 h-2 rounded-full bg-orange-400 animate-bounce" style={{animationDelay:'150ms'}}></div>
+                        <div className="w-2 h-2 rounded-full bg-orange-400 animate-bounce" style={{animationDelay:'300ms'}}></div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+                <div ref={bottomRef} />
+              </div>
+
+              {/* Input */}
+              <div className="p-3 bg-slate-900 border-t border-slate-800 shadow-inner sticky bottom-0 z-20" style={{paddingBottom:'calc(env(safe-area-inset-bottom) + 0.75rem)'}}>
+                <PlaceholdersAndVanishInput
+                  placeholders={vanishPlaceholders}
+                  onChange={(e) => setInput(e.target.value)}
+                  onSubmit={(e) => { e.preventDefault(); if(!loading) send(); }}
+                />
+              </div>
+            </>
           ) : (
             // compact panel (existing)
             <>

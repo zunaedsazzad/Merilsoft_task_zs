@@ -2,7 +2,6 @@
 import Link from 'next/link'
 import { useState, useRef, useEffect } from 'react'
 import { RiMoneyDollarBoxFill, RiSkull2Line } from 'react-icons/ri'
-import { HiOutlineSun, HiOutlineMoon } from 'react-icons/hi'
 import { SiHiveBlockchain, SiSmartthings, SiCoinmarketcap } from 'react-icons/si'
 import { GrBusinessService, GrSystem } from 'react-icons/gr'
 import { FaUserAstronaut, FaAssistiveListeningSystems } from 'react-icons/fa'
@@ -66,40 +65,10 @@ export default function Navbar() {
     return () => window.removeEventListener('scroll', onScroll)
   }, [])
 
-  // theme (dark / light) handling - default to dark
-  const [theme, setTheme] = useState<'light' | 'dark'>('dark')
+  // Force dark mode once (no light mode toggle)
   useEffect(() => {
-    try {
-      const stored = localStorage.getItem('theme')
-      if (stored === 'dark' || stored === 'light') {
-        setTheme(stored)
-        if (stored === 'dark') {
-          document.documentElement.classList.add('dark')
-        } else {
-          document.documentElement.classList.remove('dark')
-        }
-      } else {
-        // Default to dark mode if no preference is stored
-        setTheme('dark')
-        document.documentElement.classList.add('dark')
-        localStorage.setItem('theme', 'dark')
-      }
-    } catch (e) {
-      // ignore (SSR safety) - still default to dark
-      setTheme('dark')
-      document.documentElement.classList.add('dark')
-    }
+    document.documentElement.classList.add('dark')
   }, [])
-
-  const toggleTheme = () => {
-    const next = theme === 'dark' ? 'light' : 'dark'
-    setTheme(next)
-    try {
-      localStorage.setItem('theme', next)
-    } catch (e) {}
-    if (next === 'dark') document.documentElement.classList.add('dark')
-    else document.documentElement.classList.remove('dark')
-  }
 
   return (
     <header className={`fixed top-0 left-0 right-0 z-[9999] transition-colors duration-300 ease-in-out bg-gray-900 text-white ${scrolled ? 'border-b shadow-lg' : ''}`}>
@@ -445,20 +414,8 @@ export default function Navbar() {
             <Link href="/contact" className={`text-sm text-white hover:text-orange-600 focus:outline-none focus:ring-0`}>Contact</Link>
           </nav>
 
-          {/* CTA + theme toggle + mobile toggle */}
+          {/* CTA + mobile toggle */}
           <div className="flex items-center gap-3">
-            <button
-              onClick={toggleTheme}
-              aria-label="Toggle dark mode"
-              className={`p-2 rounded-md focus:outline-none focus:ring-0 text-white hover:text-orange-500`}
-            >
-              {theme === 'dark' ? (
-                <HiOutlineSun className="w-5 h-5" />
-              ) : (
-                <HiOutlineMoon className="w-5 h-5" />
-              )}
-            </button>
-
             <button 
               onClick={() => {
                 if (window.location.pathname === '/') {
